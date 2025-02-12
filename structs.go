@@ -1,0 +1,25 @@
+package main
+
+import "time"
+
+// single remote entry
+type GitRemote struct {
+	name string
+	url  string
+}
+
+// git entry
+type GitEntry struct {
+	path    string
+	branch  string
+	remotes []GitRemote
+	state   string
+}
+
+// man program configuration
+type Configuration struct {
+	root     string
+	entries  []GitEntry
+	modified time.Time
+	port     int
+}
