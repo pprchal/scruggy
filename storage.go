@@ -10,20 +10,26 @@ import (
 )
 
 // TODO: rewrite to use channels (yield)
-func scanForGitDirs(root string) ([]string, error) {
-	var gitPaths []string
+func scanForGitDirs(root string) <-chan string {
+	ch := make(chan string)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() && info.Name() == ".git" {
 			log.Println(path)
-			p := strings.ReplaceAll(path, "\\.git", "")
-			gitPaths = append(gitPaths, p)
+			ch <- strings.ReplaceAll(path, "\\.git", "")
+			// gitPaths = append(gitPaths, p)
 		}
 		return nil
 	})
-	return gitPaths, err
+
+	if err != nil {
+		log.Fatalf("Error scanning for GIT directories: %v", err)
+		panic(err)
+	}
+
+	return ch
 }
 
 func saveToCsv(gitEntries []GitEntry, output string) error {
@@ -45,7 +51,6 @@ func saveToCsv(gitEntries []GitEntry, output string) error {
 	return nil
 }
 
-
 func fetchBranches(entry GitEntry) {
 	output := executeGit("branch", entry.path)
 	println(output)
@@ -56,10 +61,12 @@ func joinRemotes(entry GitEntry) string {
 	return "TODO:remote"
 }
 
-func loadGitRepositories(config Configuration) []GitEntry {
+func loadGitRepositories(config Configuration) <-chan GitEntry {
+	ch := make(chan GitEntry)
 	for _, entry := range config.entries {
 		entry.state = executeGit("status", entry.path)
+		ch <- entry
 	}
-	
-	return config.entries
+
+	return ch
 }

@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
-
 
 func loadHtml() string {
 	data, err := os.ReadFile("index.html")
@@ -36,8 +36,8 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 
 func startHttp(config Configuration) {
 	http.HandleFunc("/", handler)
-	fmt.Printf("starting server at port %v", config.port)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		fmt.Println(err)
+	port := ":" + strconv.Itoa(config.port)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		panic(err)
 	}
 }

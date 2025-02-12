@@ -7,9 +7,14 @@ import (
 func main() {
 	// load config
 	config := loadConfiguration()
-	for n, repo := range loadGitRepositories(config) {
-		log.Printf("⌛ [%v] scanning %s", n, repo.path)
+
+	data := loadGitRepositories(config)
+	for repo := range data {
+		log.Printf("⌛ git-status %s", repo.path)
 	}
+	// for n, repo := range loadGitRepositories(config) {
+	// 	log.Printf("⌛ [%v] scanning %s", n, repo.path)
+	// }
 
 	startHttp(config)
 
