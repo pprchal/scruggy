@@ -1,7 +1,5 @@
 package main
 
-import "time"
-
 // single remote entry
 type GitRemote struct {
 	name string
@@ -18,8 +16,8 @@ type GitEntry struct {
 
 // man program configuration
 type Configuration struct {
-	root     string
-	entries  []GitEntry
-	modified time.Time
-	port     int
+	root    string
+	entries []GitEntry
+	port    int
+	period  string
 }

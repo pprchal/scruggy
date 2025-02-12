@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/path/to/your/main.go"
+            "program": "${workspaceFolder}/main.go"
         },
         {
             "name": "Launch Package",

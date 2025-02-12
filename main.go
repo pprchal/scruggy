@@ -7,8 +7,6 @@ import (
 func main() {
 	// load config
 	config := loadConfiguration()
-	println("⟳ config loaded " + config.root)
-
 	for n, repo := range loadGitRepositories(config) {
 		log.Printf("⌛ [%v] scanning %s", n, repo.path)
 	}

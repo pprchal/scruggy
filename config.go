@@ -2,16 +2,13 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strings"
-)
 
-// load config.ini
-func loadIni() Configuration {
-	conf := Configuration{root: "~/"}
-	return conf
-}
+	"gopkg.in/ini.v1"
+)
 
 // TODO: rewrite to use channels (yield)
 func loadCsv() []GitEntry {
@@ -37,14 +34,26 @@ func loadCsv() []GitEntry {
 		gitEntries = append(gitEntries, entry)
 	}
 
-
 	return gitEntries
 }
 
 // merge ini+csv together
 func loadConfiguration() Configuration {
-	conf := Configuration{root: "~/"}
+	cfg, err := ini.Load("config.ini")
+	if err != nil {
+		fmt.Printf("😭 failed to read config.ini: %v", err)
+		os.Exit(1)
+	}
+
+	conf := Configuration{
+		root:   cfg.Section("global").Key("root").String(),
+		period: cfg.Section("global").Key("period").String(),
+	}
 	conf.entries = loadCsv()
-	conf.port = 8080
+	port, err := cfg.Section("global").Key("port").Int()
+	if err != nil {
+		log.Fatalf("😭 invalid port value: %v", err)
+	}
+	conf.port = port
 	return conf
 }
