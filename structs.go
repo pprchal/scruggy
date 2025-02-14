@@ -8,10 +8,9 @@ type GitRemote struct {
 
 // git entry
 type GitEntry struct {
-	path    string
-	branch  string
-	remotes []GitRemote
-	state   string
+	path         string
+	sync_remotes []GitRemote
+	state        string
 }
 
 // man program configuration

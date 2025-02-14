@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
 
-func loadHtml() string {
+func renderPage() string {
 	data, err := os.ReadFile("index.html")
 	if err != nil {
 		fmt.Print(err)
@@ -21,16 +20,20 @@ func loadHtml() string {
 
 func handler(writer http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		log.Print("POST request received")
-
-		request, err := io.ReadAll(r.Body)
-		if err != nil {
+		if err := r.ParseForm(); err != nil {
 			log.Print(err)
+			http.Error(writer, "Unable to parse form", http.StatusBadRequest)
+			return
 		}
-		log.Print(string(request))
+
+		for key, values := range r.Form {
+			for _, value := range values {
+				log.Printf("Form field %s: %s", key, value)
+			}
+		}
 	}
 
-	html := loadHtml()
+	html := renderPage()
 	fmt.Fprintf(writer, html)
 }
 

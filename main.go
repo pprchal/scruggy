@@ -6,14 +6,19 @@ import (
 
 func main() {
 	// load config
-	config := loadConfiguration()
+	config := LoadConfiguration()
 
-	data := loadGitRepositories(config)
-	for repo := range data {
+	//UpdateConfiguration(config)
+
+	// repos := LoadGitConfig(config)
+	for n := range config.entries {
+		repo := config.entries[n]
 		log.Printf("⌛ git-status %s", repo.path)
+		// FetchGitStatus(repo)
 	}
+
 	// for n, repo := range loadGitRepositories(config) {
-	// 	log.Printf("⌛ [%v] scanning %s", n, repo.path)
+	// 	log.Printf("🔎 [%v] scanning %s", n, repo.path)
 	// }
 
 	startHttp(config)
