@@ -44,10 +44,7 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 		// }
 	}
 
-	html := loadTemplate()
-
-	cc := renderNewRepos()
-	html = strings.Replace(html, "{new_repos}", cc, -1)
+	html := strings.Replace(loadTemplate(), "{new_repos}", renderNewRepos(), -1)
 	fmt.Fprintf(writer, html)
 }
 
@@ -64,7 +61,7 @@ func renderNewRepos() string {
 	for _, repo := range config.new_repos {
 		html += "<tr>"
 		html += "<td>" + repo + "</td>"
-		html += "<td><form action=\"AddRepo\"></form></td>"
+		html += "<td><form action=\"AddRepo\"><input type=\"submit\" value=\"➕ Add repo\" /></form></td>"
 		html += "</tr>"
 	}
 
