@@ -4,17 +4,16 @@ import (
 	"log"
 )
 
+var config Configuration
+
 func main() {
 	// load config
-	config := LoadConfiguration()
+	config = LoadConfiguration()
+	// config.taskMessages = make(chan string)
 
-	//UpdateConfiguration(config)
-
-	// repos := LoadGitConfig(config)
 	for n := range config.entries {
 		repo := config.entries[n]
 		log.Printf("⌛ git-status %s", repo.path)
-		// FetchGitStatus(repo)
 	}
 
 	// for n, repo := range loadGitRepositories(config) {

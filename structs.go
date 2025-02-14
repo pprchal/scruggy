@@ -15,8 +15,9 @@ type GitEntry struct {
 
 // man program configuration
 type Configuration struct {
-	root    string
-	entries []GitEntry
-	port    int
-	period  string
+	root      string
+	entries   []GitEntry
+	port      int
+	period    string
+	new_repos []string
 }

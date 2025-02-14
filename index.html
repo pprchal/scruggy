@@ -8,17 +8,25 @@
     <body>
         <h1>scruggy</h1>
 
-        <form method="post">
+        <form method="post" action="/ScanStart">
             <input type="text" name="message" />
             <input type="submit" value="Rescan" />
         </form>
 
 
-        <form method="post">
-            <input type="submit" value="Sync" />
+        <form method="post" action="/ScanStop">
+            <input type="text" name="message" />
+            <input type="submit" value="ScanStop" />
+        </form>
+
+        <form method="post" action="/SyncAll">
+            <input type="text" name="message" />
+            <input type="submit" value="SyncAll" />
         </form>
     </body>
 
+    <h2>Scans</h2>
     <table>
+        {new_repos}
     </table>
 </html>

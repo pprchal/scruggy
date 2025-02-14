@@ -10,15 +10,15 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func FindGitRepositories(root string) <-chan string {
-	ch := make(chan string)
+func FindGitRepositories(root string, f func(string)) {
+	// ch := make(chan string)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() && info.Name() == ".git" {
-			log.Println(path)
-			ch <- strings.ReplaceAll(path, "\\.git", "")
+			f(strings.ReplaceAll(path, "\\.git", ""))
+			// ch <- strings.ReplaceAll(path, "\\.git", "")
 		}
 		return nil
 	})
@@ -28,7 +28,7 @@ func FindGitRepositories(root string) <-chan string {
 		panic(err)
 	}
 
-	return ch
+	// return ch
 }
 
 func LoadGitConfig(entry GitEntry) {

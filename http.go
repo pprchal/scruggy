@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
-func renderPage() string {
+func loadTemplate() string {
 	data, err := os.ReadFile("index.html")
 	if err != nil {
 		fmt.Print(err)
@@ -26,14 +27,27 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		for key, values := range r.Form {
-			for _, value := range values {
-				log.Printf("Form field %s: %s", key, value)
-			}
+		if r.RequestURI == "/ScanStart" {
+			ScanStart()
 		}
+		if r.RequestURI == "/ScanStop" {
+			ScanStop()
+		}
+		if r.RequestURI == "/SyncAll" {
+			SyncAll()
+		}
+
+		// for key, values := range r.Form {
+		// 	for _, value := range values {
+		// 		log.Printf("Form field %s: %s", key, value)
+		// 	}
+		// }
 	}
 
-	html := renderPage()
+	html := loadTemplate()
+
+	cc := renderNewRepos()
+	html = strings.Replace(html, "{new_repos}", cc, -1)
 	fmt.Fprintf(writer, html)
 }
 
@@ -43,4 +57,16 @@ func startHttp(config Configuration) {
 	if err := http.ListenAndServe(port, nil); err != nil {
 		panic(err)
 	}
+}
+
+func renderNewRepos() string {
+	html := ""
+	for _, repo := range config.new_repos {
+		html += "<tr>"
+		html += "<td>" + repo + "</td>"
+		html += "<td><form action=\"AddRepo\"></form></td>"
+		html += "</tr>"
+	}
+
+	return html
 }
