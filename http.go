@@ -39,14 +39,17 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 
 		case "/SyncAll":
 			SyncAll()
-		}
 
-		// for key, values := range r.Form {
-		// 	for _, value := range values {
-		// 		log.Printf("Form field %s: %s", key, value)
-		// 	}
-		// }
+		case "/RepoAction":
+			RepoAction(r.FormValue("repo"), r.FormValue("action"), r.FormValue("remote"))
+		}
 	}
+
+	// for key, values := range r.Form {
+	// 	for _, value := range values {
+	// 		log.Printf("Form field %s: %s", key, value)
+	// 	}
+	// }
 
 	html := strings.Replace(loadTemplate(), "{new_repos}", renderNewRepos(), -1)
 	html = strings.Replace(html, "{repos}", renderRepos(), -1)
@@ -81,8 +84,14 @@ func renderRepos() string {
 		html += "<tr>"
 		html += "<td>" + repo.path + "</td>\r\n"
 
-		repo_input := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" />", repo)
-		html += fmt.Sprintf("<td><form method=\"post\" action=\"SyncRepoPush\">%s<input type=\"submit\" value=\"sync\" /></form></td>", repo_input)
+		htmlActions := ""
+		for _, action := range repo.actions {
+			htmlActions += fmt.Sprintf("<form method=\"post\" action=\"RepoAction\"><input type=\"hidden\" name=\"repo\" value=\"%s\" /><input type=\"hidden\" name=\"action\" value=\"%s\" /><input type=\"hidden\" name=\"remote\" value=\"%s\" /><input type=\"submit\" value=\"%s\" /></form>", repo.path, action.action, action.remote, action.action)
+		}
+		html += "<td>" + htmlActions + "</td>\r\n"
+
+		// repo_input := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" /><input type=\"hidden\" name=\"action\" value=\"%s\" />", repo, "pull")
+		// html += fmt.Sprintf("<td><form method=\"post\" action=\"RepoPush\">%s<input type=\"submit\" value=\"sync\" /></form></td>", repo_input)
 		html += "</tr>\r\n"
 	}
 
