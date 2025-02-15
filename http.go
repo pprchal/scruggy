@@ -124,7 +124,17 @@ func gitAction(action GitAction, repo GitRepo) string {
 	if action.action == "pull" {
 		symbol = "⇓"
 	}
-	actionButton := button("RepoAction", symbol+" "+action.remote)
+
+	// find remote
+	remote := GitRemote{}
+	for n := range repo.remotes {
+		if repo.remotes[n].name == action.remote {
+			remote = repo.remotes[n]
+			break
+		}
+	}
+
+	actionButton := button("RepoAction", fmt.Sprintf("%s %s [%s]", symbol, action.remote, remote.url))
 	actionForm := fmt.Sprintf("<form method=\"post\">%s %s %s %s</form>\n", actionRepo, actionRemote, actionButton, gitAction)
 	return actionForm
 }

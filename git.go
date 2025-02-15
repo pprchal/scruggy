@@ -47,7 +47,12 @@ func LoadGitConfig(entry *GitRepo) {
 		if strings.HasPrefix(name, "remote") {
 			name = strings.Replace(name, "remote ", "", 1)
 			name = strings.Replace(name, "\"", "", -1)
-			entry.remotes = append(entry.remotes, GitRemote{name: name})
+
+			remote := GitRemote{
+				name: name,
+				url:  sections[n].Key("url").String(),
+			}
+			entry.remotes = append(entry.remotes, remote)
 		}
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// merge ini+csv together
 func LoadConfiguration() Configuration {
 	cfg, err := ini.Load("config.ini")
 	if err != nil {
@@ -29,12 +28,12 @@ func LoadConfiguration() Configuration {
 	}
 	conf.port = port
 
-	// [/repos...]
-	conf.repos = LoadGitRepos(cfg)
+	// load .git/config
+	conf.repos = BuildGitRepos(cfg)
 	return conf
 }
 
-func LoadGitRepos(cfg *ini.File) []GitRepo {
+func BuildGitRepos(cfg *ini.File) []GitRepo {
 	repos := []GitRepo{}
 	sections := cfg.Sections()
 	for n := range sections {
@@ -47,11 +46,14 @@ func LoadGitRepos(cfg *ini.File) []GitRepo {
 			continue
 		}
 
-		repos = append(repos, GitRepo{
+		repo := GitRepo{
 			path:    section.Name(),
 			actions: ParseActions(section.KeysHash()["actions"]),
 			state:   "",
-		})
+		}
+
+		LoadGitConfig(&repo)
+		repos = append(repos, repo)
 	}
 
 	return repos

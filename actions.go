@@ -13,7 +13,7 @@ func RepoAction(repo string, action string, remote string) {
 		return
 	}
 
-	log.Printf("git[%s] %s %s", remote, action, repo)
+	log.Printf("git %s %s [%s]", action, remote, repo)
 }
 
 func ScanStop() {
@@ -61,7 +61,7 @@ func AddRepo(path string) {
 	repo := GitRepo{path: path}
 	LoadGitConfig(&repo)
 
-	// format actions
+	// default actions
 	actions := ""
 	for _, remote := range repo.remotes {
 		actions += fmt.Sprintf("push-%s,pull-%s", remote.name, remote.name)
