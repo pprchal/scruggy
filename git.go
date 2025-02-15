@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"gopkg.in/ini.v1"
@@ -62,4 +64,17 @@ func FetchGitStatus(config Configuration) <-chan GitRepo {
 	}()
 
 	return ch
+}
+
+func OpenTerminalWindow(path string) {
+	switch runtime.GOOS {
+	case "linux":
+		exec.Command("xdg-open", path).Start()
+	case "windows":
+		exec.Command("rundll32", "url.dll,FileProtocolHandler", path).Start()
+	case "darwin":
+		exec.Command("open", path).Start()
+	default:
+		log.Fatal("unsupported platform")
+	}
 }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Basic Page Needs –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>scruggy</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="description" content="scruffy's git scanner">
+    <meta name="author" content="Pavel Prchal">
+
+    <!-- Mobile Specific Metas –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+
+    <!-- Favicon –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <!-- <link rel="icon" type="image/png" href="images/favicon.png">    ⇓ ⇑  ⇕  -->
+</head>
+
+
+<body>
+    <div class="container">
+        <h1>scruggy</h1>
+        <div class="docs-example">
+            <div>
+                <div>
+                    <form method="post">
+                        <input type="submit" name="action" value="ScanStart" class="button button-primary" />
+                        <input type="submit" name="action" value="SyncAll" class="button button-primary" />
+                        <input type="submit" name="action" value="ScanStop" class="button button-primary" />
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+
+        <h2>🏠 magaged repositories</h2>
+        <table class="u-full-width">
+            {repos}
+        </table>
+
+        <h2>🔎 scanned repositories</h2>
+        <table class="u-full-width">
+            <thead>
+                <tr>
+                    <th>repo</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            {new_repos}
+        </table>
+    </div>
+
+</body>
+
+</html>

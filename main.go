@@ -16,5 +16,5 @@ func main() {
 	}
 
 	// start gui
-	startHttp(config)
+	StartHttp(config)
 }
