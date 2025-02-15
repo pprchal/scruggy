@@ -13,7 +13,7 @@ func RepoAction(repo string, action string, remote string) {
 		return
 	}
 
-	fmt.Printf("git[%s] %s %s", remote, action, repo)
+	log.Printf("git[%s] %s %s", remote, action, repo)
 }
 
 func ScanStop() {

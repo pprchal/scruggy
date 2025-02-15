@@ -52,7 +52,7 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 			OpenTerminalWindow(r.FormValue("repo"))
 
 		case "RepoAction":
-			RepoAction(r.FormValue("repo"), r.FormValue("action"), r.FormValue("remote"))
+			RepoAction(r.FormValue("repo"), r.FormValue("gitAction"), r.FormValue("remote"))
 		}
 	} else if r.Method == "GET" && strings.Contains(r.RequestURI, "css") {
 		path := strings.Replace(r.RequestURI, "/css/", "", 1)
@@ -100,12 +100,33 @@ func renderRepos() string {
 		repoInput := input("repo", repo.path)
 		repoButton := button("RepoOpenTerm", "💻 "+repo.path)
 		termForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n", repoInput, repoButton)
+
+		// sync actions ⇓ ⇑  ⇕
+		actionForm := ""
+		for _, action := range repo.actions {
+			actionForm += gitAction(action, repo)
+		}
+
 		html += "<td>" + termForm + "</td>\n"
-		html += "<td>&nbsp;</td>\n"
+		html += "<td>" + actionForm + "</td>\n"
 		html += "</tr>\n"
 	}
 
 	return html
+}
+
+func gitAction(action GitAction, repo GitRepo) string {
+	actionRepo := input("repo", repo.path)
+	actionRemote := input("remote", action.remote)
+	gitAction := input("gitAction", action.action)
+
+	symbol := "⇑"
+	if action.action == "pull" {
+		symbol = "⇓"
+	}
+	actionButton := button("RepoAction", symbol+" "+action.remote)
+	actionForm := fmt.Sprintf("<form method=\"post\">%s %s %s %s</form>\n", actionRepo, actionRemote, actionButton, gitAction)
+	return actionForm
 }
 
 func button(action string, text string) string {
