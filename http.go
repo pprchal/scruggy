@@ -28,7 +28,14 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		switch r.Form["action"][0] {
+		action := ""
+		if len(r.Form["submit"]) == 0 {
+			action = r.Form["action"][0]
+		} else {
+			action = r.FormValue("submit")
+		}
+
+		switch action {
 		case "AddRepo":
 			AddRepo(r.FormValue("repo"))
 
@@ -73,8 +80,11 @@ func renderNewRepos() string {
 		html += "<tr>"
 		html += "<td>" + repo + "</td>\r\n"
 
-		repo_input := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" />", repo)
-		html += fmt.Sprintf("<td><form method=\"post\" action=\"AddRepo\">%s<input type=\"submit\" value=\"➕ Add repo\" /></form></td>", repo_input)
+		// add repo to config
+		repoInput := input("repo", repo)
+		repoButton := button("AddRepo", "➕ "+repo)
+		repoForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n", repoInput, repoButton)
+		html += "<td>" + repoForm + "</td>\n"
 		html += "</tr>\r\n"
 	}
 
@@ -87,22 +97,21 @@ func renderRepos() string {
 		html += "<tr>"
 
 		// open terminal window
-		repoInput := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" />", repo.path)
-		repoButton := fmt.Sprintf(
-			"<input type=\"hidden\" name=\"action\" value=\"%s\" />"+
-				"<input type=\"submit\" value=\"💻 %s\" />", "RepoOpenTerm", repo.path)
-		repoForm := fmt.Sprintf("<form method=\"post\">%s %s</form>", repoInput, repoButton)
-		html += "<td>" + repoForm + "</td>\r\n"
-
-		// action buttons
-		htmlActions := ""
-		for _, action := range repo.actions {
-			htmlActions += fmt.Sprintf("<form method=\"post\" action=\"RepoAction\"><input type=\"hidden\" name=\"repo\" value=\"%s\" /><input type=\"hidden\" name=\"action\" value=\"%s\" /><input type=\"hidden\" name=\"remote\" value=\"%s\" /><input type=\"submit\" value=\"⇧ %s\" /></form>", repo.path, action.action, action.remote, action.action)
-		}
-		html += "<td>" + htmlActions + "</td>\r\n"
-
-		html += "</tr>\r\n"
+		repoInput := input("repo", repo.path)
+		repoButton := button("RepoOpenTerm", "💻 "+repo.path)
+		termForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n", repoInput, repoButton)
+		html += "<td>" + termForm + "</td>\n"
+		html += "<td>&nbsp;</td>\n"
+		html += "</tr>\n"
 	}
 
 	return html
+}
+
+func button(action string, text string) string {
+	return fmt.Sprintf("<button type=\"submit\" name=\"action\" value=\"%s\">%s</button>", action, text)
+}
+
+func input(name string, value string) string {
+	return fmt.Sprintf("<input type=\"hidden\" name=\"%s\" value=\"%s\" />", name, value)
 }
