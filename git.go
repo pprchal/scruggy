@@ -11,15 +11,17 @@ import (
 )
 
 func FindGitRepositories(root string, f func(string)) {
-	// ch := make(chan string)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
+
 		if info.IsDir() && info.Name() == ".git" {
-			f(strings.ReplaceAll(path, "\\.git", ""))
-			// ch <- strings.ReplaceAll(path, "\\.git", "")
+			path = strings.ReplaceAll(path, ".git", "")
+			path = strings.TrimSuffix(path, string(filepath.Separator))
+			f(path)
 		}
+
 		return nil
 	})
 
@@ -27,25 +29,24 @@ func FindGitRepositories(root string, f func(string)) {
 		log.Fatalf("😭 error scanning for GIT directories: %v", err)
 		panic(err)
 	}
-
-	// return ch
 }
 
-func LoadGitConfig(entry GitRepo) {
-	cfg, err := ini.Load(filepath.Join(entry.path, ".git", "config"))
+func LoadGitConfig(entry *GitRepo) {
+	path := filepath.Join(entry.path, ".git", "config")
+	cfg, err := ini.Load(path)
 	if err != nil {
-		fmt.Printf("😭 failed to read %s/.git/config: %v", entry.path, err)
+		fmt.Printf("😭 failed to read %s: %v", path, err)
 		os.Exit(1)
 	}
 
 	sections := cfg.Sections()
 	for n := range sections {
 		name := sections[n].Name()
-		if strings.HasPrefix(name, "remote \"") {
-			name = strings.TrimPrefix(name, "remote \"")
+		if strings.HasPrefix(name, "remote") {
+			name = strings.Replace(name, "remote ", "", 1)
+			name = strings.Replace(name, "\"", "", -1)
 			entry.remotes = append(entry.remotes, GitRemote{name: name})
 		}
-		log.Println(name)
 	}
 }
 
