@@ -1,22 +1,29 @@
 package main
 
-// single remote entry
+// git remote repo - .git/config
 type GitRemote struct {
 	name string
 	url  string
 }
 
-// git entry
-type GitEntry struct {
-	path         string
-	sync_remotes []GitRemote
-	state        string
+// config-action pair - .config.ini
+type GitAction struct {
+	remote string
+	action string
 }
 
-// man program configuration
+// git repository - .config.ini
+type GitRepo struct {
+	path    string
+	remotes []GitRemote
+	actions []GitAction
+	state   string
+}
+
+// main program configuration - global state
 type Configuration struct {
 	root      string
-	entries   []GitEntry
+	repos     []GitRepo
 	port      int
 	period    string
 	new_repos []string

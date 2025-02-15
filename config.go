@@ -30,12 +30,12 @@ func LoadConfiguration() Configuration {
 	conf.port = port
 
 	// [/repos...]
-	conf.entries = LoadGitEntries(cfg)
+	conf.repos = LoadGitRepos(cfg)
 	return conf
 }
 
-func LoadGitEntries(cfg *ini.File) []GitEntry {
-	gitEntries := []GitEntry{}
+func LoadGitRepos(cfg *ini.File) []GitRepo {
+	repos := []GitRepo{}
 	sections := cfg.Sections()
 	for n := range sections {
 		section := sections[n]
@@ -47,24 +47,36 @@ func LoadGitEntries(cfg *ini.File) []GitEntry {
 			continue
 		}
 
-		gitEntries = append(gitEntries, GitEntry{
-			path:         section.Name(),
-			sync_remotes: ParseRemotes(section.KeysHash()["sync_remotes"]),
+		repos = append(repos, GitRepo{
+			path:    section.Name(),
+			actions: ParseActions(section.KeysHash()["actions"]),
+			state:   "",
 		})
 	}
 
-	return gitEntries
+	return repos
 }
 
-func ParseRemotes(remotes string) []GitRemote {
-	sync_remotes := strings.Split(remotes, ",")
-	gitRemotes := []GitRemote{}
-	for i := range sync_remotes {
-		gitRemotes = append(gitRemotes, GitRemote{
-			name: sync_remotes[i],
-			url:  "",
-		})
+func ParseActions(remotes string) []GitAction {
+	actionSplits := strings.Split(remotes, ",")
+	actions := []GitAction{}
+	for i := range actionSplits {
+		action := GitAction{
+			action: "",
+		}
+
+		if strings.HasPrefix(actionSplits[i], "push-") {
+			action.action = "push"
+			action.remote = strings.TrimPrefix(actionSplits[i], "push-")
+		} else if strings.HasPrefix(actionSplits[i], "pull-") {
+			action.action = "pull"
+			action.remote = strings.TrimPrefix(actionSplits[i], "pull-")
+		} else {
+			panic("😭 invalid action: " + actionSplits[i])
+		}
+
+		actions = append(actions, action)
 	}
 
-	return gitRemotes
+	return actions
 }

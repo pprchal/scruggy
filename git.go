@@ -31,7 +31,7 @@ func FindGitRepositories(root string, f func(string)) {
 	// return ch
 }
 
-func LoadGitConfig(entry GitEntry) {
+func LoadGitConfig(entry GitRepo) {
 	cfg, err := ini.Load(filepath.Join(entry.path, ".git", "config"))
 	if err != nil {
 		fmt.Printf("😭 failed to read %s/.git/config: %v", entry.path, err)
@@ -43,18 +43,18 @@ func LoadGitConfig(entry GitEntry) {
 		name := sections[n].Name()
 		if strings.HasPrefix(name, "remote \"") {
 			name = strings.TrimPrefix(name, "remote \"")
-			entry.sync_remotes = append(entry.sync_remotes, GitRemote{name: name})
+			entry.remotes = append(entry.remotes, GitRemote{name: name})
 		}
 		log.Println(name)
 	}
 }
 
-func FetchGitStatus(config Configuration) <-chan GitEntry {
-	ch := make(chan GitEntry)
+func FetchGitStatus(config Configuration) <-chan GitRepo {
+	ch := make(chan GitRepo)
 
 	go func() {
 		defer close(ch)
-		for _, entry := range config.entries {
+		for _, entry := range config.repos {
 			entry.state = executeGit("status", entry.path)
 			ch <- entry
 		}

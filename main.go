@@ -7,14 +7,14 @@ import (
 var config Configuration
 
 func main() {
-	// load config
 	config = LoadConfiguration()
-	// config.taskMessages = make(chan string)
 
-	for n := range config.entries {
-		repo := config.entries[n]
+	// fetch status - todo: goroutine
+	for n := range config.repos {
+		repo := config.repos[n]
 		log.Printf("⌛ git-status %s", repo.path)
 	}
 
+	// start gui
 	startHttp(config)
 }

@@ -49,6 +49,7 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 	}
 
 	html := strings.Replace(loadTemplate(), "{new_repos}", renderNewRepos(), -1)
+	html = strings.Replace(html, "{repos}", renderRepos(), -1)
 	fmt.Fprintf(writer, html)
 }
 
@@ -68,6 +69,20 @@ func renderNewRepos() string {
 
 		repo_input := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" />", repo)
 		html += fmt.Sprintf("<td><form method=\"post\" action=\"AddRepo\">%s<input type=\"submit\" value=\"➕ Add repo\" /></form></td>", repo_input)
+		html += "</tr>\r\n"
+	}
+
+	return html
+}
+
+func renderRepos() string {
+	html := ""
+	for _, repo := range config.repos {
+		html += "<tr>"
+		html += "<td>" + repo.path + "</td>\r\n"
+
+		repo_input := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" />", repo)
+		html += fmt.Sprintf("<td><form method=\"post\" action=\"SyncRepoPush\">%s<input type=\"submit\" value=\"sync\" /></form></td>", repo_input)
 		html += "</tr>\r\n"
 	}
 

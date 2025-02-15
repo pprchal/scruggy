@@ -7,14 +7,13 @@ import (
 )
 
 func ScanStop() {
-
 }
 
-func newRepo(repo string) {
+func NewRepo(repo string) {
 	// config.new_repos = nil
 
-	for n := range config.entries {
-		if config.entries[n].path == repo {
+	for n := range config.repos {
+		if config.repos[n].path == repo {
 			log.Printf("🔎 repo already exists: %s", repo)
 			return
 		}
@@ -26,11 +25,10 @@ func newRepo(repo string) {
 
 func ScanStart() {
 	log.Printf("🔎 scanning %s", config.root)
-	FindGitRepositories(config.root, newRepo)
+	FindGitRepositories(config.root, NewRepo)
 }
 
 func SyncAll() {
-
 }
 
 func AddRepo(repo string) {
@@ -42,7 +40,8 @@ func AddRepo(repo string) {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(fmt.Sprintf("\n[%s]", repo))
+	actions := "push-a,pull-a"
+	_, err = f.WriteString(fmt.Sprintf("\n[%s]\n%s", repo, actions))
 	if err != nil {
 		log.Fatal(err)
 	}
