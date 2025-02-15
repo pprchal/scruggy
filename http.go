@@ -27,13 +27,17 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if r.RequestURI == "/ScanStart" {
+		switch r.RequestURI {
+		case "/AddRepo":
+			AddRepo(r.FormValue("repo"))
+
+		case "/ScanStart":
 			ScanStart()
-		}
-		if r.RequestURI == "/ScanStop" {
+
+		case "/ScanStop":
 			ScanStop()
-		}
-		if r.RequestURI == "/SyncAll" {
+
+		case "/SyncAll":
 			SyncAll()
 		}
 
@@ -60,9 +64,11 @@ func renderNewRepos() string {
 	html := ""
 	for _, repo := range config.new_repos {
 		html += "<tr>"
-		html += "<td>" + repo + "</td>"
-		html += "<td><form action=\"AddRepo\"><input type=\"submit\" value=\"➕ Add repo\" /></form></td>"
-		html += "</tr>"
+		html += "<td>" + repo + "</td>\r\n"
+
+		repo_input := fmt.Sprintf("<input type=\"hidden\" name=\"repo\" value=\"%s\" />", repo)
+		html += fmt.Sprintf("<td><form method=\"post\" action=\"AddRepo\">%s<input type=\"submit\" value=\"➕ Add repo\" /></form></td>", repo_input)
+		html += "</tr>\r\n"
 	}
 
 	return html
