@@ -2,19 +2,23 @@ package main
 
 import (
 	"log"
+	"scruggy/config"
+	"scruggy/git"
+	"scruggy/http"
 )
 
-var config Configuration
-
 func main() {
-	config = LoadConfiguration()
+	config.GlobalConfig = config.LoadConfiguration()
 
 	// fetch status - todo: goroutine
-	for n := range config.repos {
-		repo := config.repos[n]
-		log.Printf("⌛ git-status %s", repo.path)
-	}
+	go func() {
+		for n := range config.GlobalConfig.Repos {
+			repo := config.GlobalConfig.Repos[n]
+			status := git.Status(repo.Path)
+			log.Printf("⌛ %d < git-status %s => %s", status.Status, repo.Path, status.Text)
+		}
+	}()
 
 	// start gui
-	StartHttp(config)
+	http.StartHttp()
 }

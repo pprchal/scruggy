@@ -1,4 +1,4 @@
-package main
+package http
 
 import (
 	"fmt"
@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"scruggy/actions"
+	"scruggy/config"
+	"scruggy/git"
 	"strconv"
 	"strings"
 )
 
 func loadTemplate() string {
-	path := filepath.Join("html", "index.html")
+	path := filepath.Join("http", "index.html")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Print(err)
@@ -37,25 +40,25 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 
 		switch action {
 		case "AddRepo":
-			AddRepo(r.FormValue("repo"))
+			actions.AddRepo(r.FormValue("repo"))
 
 		case "ScanStart":
-			ScanStart()
+			actions.ScanStart()
 
 		case "ScanStop":
-			ScanStop()
+			actions.ScanStop()
 
 		case "SyncAll":
-			SyncAll()
+			actions.SyncAll()
 
 		case "RepoOpenTerm":
-			OpenTerminalWindow(r.FormValue("repo"))
+			actions.OpenTerminalWindow(r.FormValue("repo"))
 
 		case "RepoAction":
-			RepoAction(r.FormValue("repo"), r.FormValue("gitAction"), r.FormValue("remote"))
+			actions.RepoAction(r.FormValue("repo"), r.FormValue("gitAction"), r.FormValue("remote"))
 
 		case "Quit":
-			Quit()
+			actions.Quit()
 		}
 	} else if r.Method == "GET" && strings.Contains(r.RequestURI, "css") {
 		path := strings.Replace(r.RequestURI, "/css/", "", 1)
@@ -69,9 +72,9 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(writer, html)
 }
 
-func StartHttp(config Configuration) {
+func StartHttp() {
 	http.HandleFunc("/", handler)
-	port := ":" + strconv.Itoa(config.port)
+	port := ":" + strconv.Itoa(config.GlobalConfig.Port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		panic(err)
 	}
@@ -79,7 +82,7 @@ func StartHttp(config Configuration) {
 
 func renderNewRepos() string {
 	html := ""
-	for _, repo := range config.new_repos {
+	for _, repo := range config.GlobalConfig.NewRepos {
 		html += "<tr>"
 		html += "<td>" + repo + "</td>\r\n"
 
@@ -96,17 +99,17 @@ func renderNewRepos() string {
 
 func renderRepos() string {
 	html := ""
-	for _, repo := range config.repos {
+	for _, repo := range config.GlobalConfig.Repos {
 		html += "<tr>"
 
 		// open terminal window
-		repoInput := input("repo", repo.path)
-		repoButton := button("RepoOpenTerm", "💻 "+repo.path)
+		repoInput := input("repo", repo.Path)
+		repoButton := button("RepoOpenTerm", "💻 "+repo.Path)
 		termForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n", repoInput, repoButton)
 
 		// sync actions ⇓ ⇑  ⇕
 		actionForm := ""
-		for _, action := range repo.actions {
+		for _, action := range repo.Actions {
 			actionForm += gitAction(action, repo)
 		}
 
@@ -118,26 +121,26 @@ func renderRepos() string {
 	return html
 }
 
-func gitAction(action GitAction, repo GitRepo) string {
-	actionRepo := input("repo", repo.path)
-	actionRemote := input("remote", action.remote)
-	gitAction := input("gitAction", action.action)
+func gitAction(action git.GitAction, repo git.GitRepo) string {
+	actionRepo := input("repo", repo.Path)
+	actionRemote := input("remote", action.Remote)
+	gitAction := input("gitAction", action.Action)
 
 	symbol := "⇑"
-	if action.action == "pull" {
+	if action.Action == "pull" {
 		symbol = "⇓"
 	}
 
 	// find remote
-	remote := GitRemote{}
-	for n := range repo.remotes {
-		if repo.remotes[n].name == action.remote {
-			remote = repo.remotes[n]
+	remote := git.GitRemote{}
+	for n := range repo.Remotes {
+		if repo.Remotes[n].Name == action.Remote {
+			remote = repo.Remotes[n]
 			break
 		}
 	}
 
-	actionButton := button("RepoAction", fmt.Sprintf("%s %s [%s]", symbol, action.remote, remote.url))
+	actionButton := button("RepoAction", fmt.Sprintf("%s %s [%s]", symbol, action.Remote, remote.Url))
 	actionForm := fmt.Sprintf("<form method=\"post\">%s %s %s %s</form>\n", actionRepo, actionRemote, actionButton, gitAction)
 	return actionForm
 }

@@ -1,13 +1,24 @@
-package main
+package config
 
 import (
 	"fmt"
 	"log"
 	"os"
+	"scruggy/git"
 	"strings"
 
 	"gopkg.in/ini.v1"
 )
+
+// main program configuration - global state
+type Configuration struct {
+	Root     string
+	Repos    []git.GitRepo
+	Port     int
+	NewRepos []string
+}
+
+var GlobalConfig Configuration
 
 func LoadConfiguration() Configuration {
 	cfg, err := ini.Load("config.ini")
@@ -18,23 +29,22 @@ func LoadConfiguration() Configuration {
 
 	// [global]
 	conf := Configuration{
-		root:   cfg.Section("global").Key("scan").String(),
-		period: cfg.Section("global").Key("period").String(),
+		Root: cfg.Section("global").Key("scan").String(),
 	}
 
 	port, err := cfg.Section("global").Key("port").Int()
 	if err != nil {
 		log.Fatalf("😭 invalid port value[%s]: %v", cfg.Section("global").Key("port"), err)
 	}
-	conf.port = port
+	conf.Port = port
 
 	// load .git/config
-	conf.repos = BuildGitRepos(cfg)
+	conf.Repos = BuildGitRepos(cfg)
 	return conf
 }
 
-func BuildGitRepos(cfg *ini.File) []GitRepo {
-	repos := []GitRepo{}
+func BuildGitRepos(cfg *ini.File) []git.GitRepo {
+	repos := []git.GitRepo{}
 	sections := cfg.Sections()
 	for n := range sections {
 		section := sections[n]
@@ -46,33 +56,33 @@ func BuildGitRepos(cfg *ini.File) []GitRepo {
 			continue
 		}
 
-		repo := GitRepo{
-			path:    section.Name(),
-			actions: ParseActions(section.KeysHash()["actions"]),
-			state:   "",
+		repo := git.GitRepo{
+			Path:    section.Name(),
+			Actions: ParseActions(section.KeysHash()["actions"]),
+			State:   "",
 		}
 
-		LoadGitConfig(&repo)
+		git.LoadGitConfig(&repo)
 		repos = append(repos, repo)
 	}
 
 	return repos
 }
 
-func ParseActions(remotes string) []GitAction {
+func ParseActions(remotes string) []git.GitAction {
 	actionSplits := strings.Split(remotes, ",")
-	actions := []GitAction{}
+	actions := []git.GitAction{}
 	for i := range actionSplits {
-		action := GitAction{
-			action: "",
+		action := git.GitAction{
+			Action: "",
 		}
 
 		if strings.HasPrefix(actionSplits[i], "push-") {
-			action.action = "push"
-			action.remote = strings.TrimPrefix(actionSplits[i], "push-")
+			action.Action = "push"
+			action.Remote = strings.TrimPrefix(actionSplits[i], "push-")
 		} else if strings.HasPrefix(actionSplits[i], "pull-") {
-			action.action = "pull"
-			action.remote = strings.TrimPrefix(actionSplits[i], "pull-")
+			action.Action = "pull"
+			action.Remote = strings.TrimPrefix(actionSplits[i], "pull-")
 		} else {
 			panic("😭 invalid action: " + actionSplits[i])
 		}
