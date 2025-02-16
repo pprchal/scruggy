@@ -46,8 +46,7 @@ func LoadConfiguration() Configuration {
 func BuildGitRepos(cfg *ini.File) []git.GitRepo {
 	repos := []git.GitRepo{}
 	sections := cfg.Sections()
-	for n := range sections {
-		section := sections[n]
+	for _, section := range sections {
 		if strings.HasPrefix(section.Name(), "global") {
 			continue
 		}
@@ -70,21 +69,24 @@ func BuildGitRepos(cfg *ini.File) []git.GitRepo {
 }
 
 func ParseActions(remotes string) []git.GitAction {
-	actionSplits := strings.Split(remotes, ",")
 	actions := []git.GitAction{}
-	for i := range actionSplits {
+	for _, actionSplit := range strings.Split(remotes, ",") {
+		if actionSplit == "" {
+			continue
+		}
+
 		action := git.GitAction{
 			Action: "",
 		}
 
-		if strings.HasPrefix(actionSplits[i], "push-") {
+		if strings.HasPrefix(actionSplit, "push-") {
 			action.Action = "push"
-			action.Remote = strings.TrimPrefix(actionSplits[i], "push-")
-		} else if strings.HasPrefix(actionSplits[i], "pull-") {
+			action.Remote = strings.TrimPrefix(actionSplit, "push-")
+		} else if strings.HasPrefix(actionSplit, "pull-") {
 			action.Action = "pull"
-			action.Remote = strings.TrimPrefix(actionSplits[i], "pull-")
+			action.Remote = strings.TrimPrefix(actionSplit, "pull-")
 		} else {
-			panic("😭 invalid action: " + actionSplits[i])
+			panic("😭 invalid action: " + actionSplit)
 		}
 
 		actions = append(actions, action)

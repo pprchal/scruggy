@@ -13,12 +13,20 @@ import (
 	"strings"
 )
 
-func loadTemplate() string {
-	path := filepath.Join("http", "index.html")
+func StartHttp() {
+	http.HandleFunc("/", handler)
+	port := ":" + strconv.Itoa(config.GlobalConfig.Port)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		panic(err)
+	}
+}
+
+func loadTemplate(name string) string {
+	path := filepath.Join("http", name)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Print(err)
-		panic("cannot locate index.html")
+		log.Panicf("😭 cannot load: %s", name)
 	}
 	return string(data)
 }
@@ -27,7 +35,7 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		if err := r.ParseForm(); err != nil {
 			log.Print(err)
-			http.Error(writer, "Unable to parse form", http.StatusBadRequest)
+			http.Error(writer, "😭 unable to parse form", http.StatusBadRequest)
 			return
 		}
 
@@ -55,7 +63,7 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 			actions.OpenTerminalWindow(r.FormValue("repo"))
 
 		case "RepoAction":
-			actions.RepoAction(r.FormValue("repo"), r.FormValue("gitAction"), r.FormValue("remote"))
+			actions.RepoActions(r.FormValue("repo"), r.FormValue("actions"))
 
 		case "Quit":
 			actions.Quit()
@@ -67,17 +75,10 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := strings.Replace(loadTemplate(), "{new_repos}", renderNewRepos(), -1)
-	html = strings.Replace(html, "{repos}", renderRepos(), -1)
+	html := loadTemplate("index.html")
+	html = strings.Replace(html, "{renderNewRepos}", renderNewRepos(), -1)
+	html = strings.Replace(html, "{renderRepos}", renderRepos(), -1)
 	fmt.Fprintf(writer, html)
-}
-
-func StartHttp() {
-	http.HandleFunc("/", handler)
-	port := ":" + strconv.Itoa(config.GlobalConfig.Port)
-	if err := http.ListenAndServe(port, nil); err != nil {
-		panic(err)
-	}
 }
 
 func renderNewRepos() string {
@@ -87,9 +88,9 @@ func renderNewRepos() string {
 		html += "<td>" + repo + "</td>\r\n"
 
 		// add repo to config
-		repoInput := input("repo", repo)
-		repoButton := button("AddRepo", "➕ "+repo)
-		repoForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n", repoInput, repoButton)
+		repoForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n",
+			input("repo", repo),
+			button("AddRepo", "➕ "+repo))
 		html += "<td>" + repoForm + "</td>\n"
 		html += "</tr>\r\n"
 	}
@@ -103,46 +104,49 @@ func renderRepos() string {
 		html += "<tr>"
 
 		// open terminal window
-		repoInput := input("repo", repo.Path)
-		repoButton := button("RepoOpenTerm", "💻 "+repo.Path)
-		termForm := fmt.Sprintf("<form method=\"post\">%s %s</form>\n", repoInput, repoButton)
+		html += "<td>" + termForm(repo) + "</td>\n"
 
 		// sync actions ⇓ ⇑  ⇕
-		actionForm := ""
-		for _, action := range repo.Actions {
-			actionForm += gitAction(action, repo)
-		}
+		html += "<td>" + actionForm(repo) + "</td>\n"
 
-		html += "<td>" + termForm + "</td>\n"
-		html += "<td>" + actionForm + "</td>\n"
 		html += "</tr>\n"
 	}
 
 	return html
 }
 
-func gitAction(action git.GitAction, repo git.GitRepo) string {
-	actionRepo := input("repo", repo.Path)
-	actionRemote := input("remote", action.Remote)
-	gitAction := input("gitAction", action.Action)
+func termForm(repo git.GitRepo) string {
+	return fmt.Sprintf("<form method=\"post\">%s %s</form>\n",
+		input("repo", repo.Path),
+		button("RepoOpenTerm", "💻 "+repo.Path))
+}
 
-	symbol := "⇑"
-	if action.Action == "pull" {
-		symbol = "⇓"
-	}
+func actionForm(repo git.GitRepo) string {
+	symbols := ""
+	actions := ""
+	remotes := ""
 
-	// find remote
-	remote := git.GitRemote{}
-	for n := range repo.Remotes {
-		if repo.Remotes[n].Name == action.Remote {
-			remote = repo.Remotes[n]
-			break
+	for _, action := range repo.Actions {
+		switch action.Action {
+		case "pull":
+			symbols += "⇓"
+
+		case "push":
+			symbols += "⇑"
 		}
+
+		if remotes == "" {
+			remote := findRemote(repo, action.Remote)
+			remotes = fmt.Sprintf("%s [%s]", remote.Name, remote.Url)
+		}
+		actions += fmt.Sprintf("%s-%s,", action.Action, action.Remote)
 	}
 
-	actionButton := button("RepoAction", fmt.Sprintf("%s %s [%s]", symbol, action.Remote, remote.Url))
-	actionForm := fmt.Sprintf("<form method=\"post\">%s %s %s %s</form>\n", actionRepo, actionRemote, actionButton, gitAction)
-	return actionForm
+	return fmt.Sprintf("<form method=\"post\">%s %s %s</form>\n",
+		input("actions", actions),
+		input("repo", repo.Path),
+		button("RepoAction", fmt.Sprintf("%s %s", symbols, remotes)))
+
 }
 
 func button(action string, text string) string {
@@ -151,4 +155,14 @@ func button(action string, text string) string {
 
 func input(name string, value string) string {
 	return fmt.Sprintf("<input type=\"hidden\" name=\"%s\" value=\"%s\" />", name, value)
+}
+
+func findRemote(repo git.GitRepo, name string) git.GitRemote {
+	for _, remote := range repo.Remotes {
+		if remote.Name == name {
+			return remote
+		}
+	}
+
+	return git.GitRemote{}
 }

@@ -15,19 +15,21 @@ func OpenTerminalWindow(path string) {
 	case "linux":
 		exec.Command("xdg-open", path).Start()
 	case "windows":
+		// TODO: maybe start is better...
 		exec.Command("rundll32", "url.dll,FileProtocolHandler", path).Start()
 	case "darwin":
 		exec.Command("open", path).Start()
 	default:
-		log.Fatal("unsupported platform")
+		log.Fatalf("😭 unsupported platform: %s", runtime.GOOS)
 	}
 }
 
 func Quit() {
 	log.Printf("bye!")
+	os.Exit(0)
 }
 
-func RepoAction(repo string, action string, remote string) {
+func repoAction(repo string, action string, remote string) {
 	gitRepo := findRepository(repo)
 	if gitRepo == nil {
 		log.Fatalf("😭 repo not found: %s", repo)
@@ -44,6 +46,12 @@ func RepoAction(repo string, action string, remote string) {
 	}
 
 	log.Printf("%d < git %s %s [%s] => %s", result.Status, action, remote, repo, result.Text)
+}
+
+func RepoActions(repo string, gitActions string) {
+	for _, action := range config.ParseActions(gitActions) {
+		repoAction(repo, action.Action, action.Remote)
+	}
 }
 
 func ScanStop() {
