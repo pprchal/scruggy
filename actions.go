@@ -13,7 +13,8 @@ func RepoAction(repo string, action string, remote string) {
 		return
 	}
 
-	log.Printf("git %s %s [%s]", action, remote, repo)
+	result := ExecuteGit(action, repo)
+	log.Printf("git %s %s [%s] => %s", action, remote, repo, result)
 }
 
 func ScanStop() {

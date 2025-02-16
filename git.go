@@ -63,7 +63,7 @@ func FetchGitStatus(config Configuration) <-chan GitRepo {
 	go func() {
 		defer close(ch)
 		for _, entry := range config.repos {
-			entry.state = executeGit("status", entry.path)
+			entry.state = ExecuteGit("status", entry.path)
 			ch <- entry
 		}
 	}()
