@@ -57,19 +57,11 @@ func LoadGitConfig(entry *GitRepo) {
 	}
 }
 
-func FetchGitStatus(config Configuration) <-chan GitRepo {
-	ch := make(chan GitRepo)
-
-	go func() {
-		defer close(ch)
-		for _, entry := range config.repos {
-			entry.state = ExecuteGit("status", entry.path)
-			ch <- entry
-		}
-	}()
-
-	return ch
-}
+// func FetchGitStatus(config Configuration) GitRepo {
+// 	for _, entry := range config.repos {
+// 		entry.state = gitStatus(entry.path)
+// 	}
+// }
 
 func OpenTerminalWindow(path string) {
 	switch runtime.GOOS {

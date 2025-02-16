@@ -6,6 +6,10 @@ import (
 	"os"
 )
 
+func Quit() {
+	log.Printf("bye!")
+}
+
 func RepoAction(repo string, action string, remote string) {
 	gitRepo := findRepository(repo)
 	if gitRepo == nil {
@@ -13,8 +17,16 @@ func RepoAction(repo string, action string, remote string) {
 		return
 	}
 
-	result := ExecuteGit(action, repo)
-	log.Printf("git %s %s [%s] => %s", action, remote, repo, result)
+	var result GitResult
+	switch action {
+	case "push":
+		result = gitPush(repo, remote)
+
+	case "pull":
+		result = gitPull(repo, remote)
+	}
+
+	log.Printf("%d < git %s %s [%s] => %s", result.status, action, remote, repo, result.text)
 }
 
 func ScanStop() {

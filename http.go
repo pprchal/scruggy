@@ -53,6 +53,9 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 
 		case "RepoAction":
 			RepoAction(r.FormValue("repo"), r.FormValue("gitAction"), r.FormValue("remote"))
+
+		case "Quit":
+			Quit()
 		}
 	} else if r.Method == "GET" && strings.Contains(r.RequestURI, "css") {
 		path := strings.Replace(r.RequestURI, "/css/", "", 1)
