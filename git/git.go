@@ -29,6 +29,7 @@ type GitRepo struct {
 	Remotes []GitRemote
 	Actions []GitAction
 	State   string
+	Status  int
 }
 
 type GitResult struct {
@@ -80,12 +81,6 @@ func LoadGitConfig(entry *GitRepo) {
 		}
 	}
 }
-
-//	func FetchGitStatus(config Configuration) GitRepo {
-//		for _, entry := range config.repos {
-//			entry.state = gitStatus(entry.path)
-//		}
-//	}
 
 func Push(repo string, remote string) GitResult {
 	var args [2]string

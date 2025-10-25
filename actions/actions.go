@@ -54,7 +54,19 @@ func RepoActions(repo string, gitActions string) {
 	}
 }
 
-func ScanStop() {
+func Refresh() {
+	config.GlobalConfig = config.LoadConfiguration()
+	for n := range config.GlobalConfig.Repos {
+		repo := &config.GlobalConfig.Repos[n]
+		status := git.Status(repo.Path)
+
+		if status.Text == "" {
+			repo.Status = 0
+		} else {
+			repo.Status = 1
+		}
+		log.Printf("⌛ %d < git-status %s => %s", status.Status, repo.Path, status.Text)
+	}
 }
 
 func ScanNewRepo(path string) {
@@ -83,6 +95,11 @@ func ScanStart() {
 }
 
 func SyncAll() {
+	for _, repo := range config.GlobalConfig.Repos {
+		for _, action := range repo.Actions {
+			repoAction(repo.Path, action.Action, action.Remote)
+		}
+	}
 }
 
 func AddRepo(path string) {
@@ -109,4 +126,6 @@ func AddRepo(path string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	config.GlobalConfig.Repos = append(config.GlobalConfig.Repos, repo)
 }

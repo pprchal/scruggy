@@ -4,34 +4,40 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"scruggy/actions"
 	"scruggy/config"
 	"scruggy/git"
 	"strconv"
 	"strings"
+	"text/template"
 )
 
+type IndexHtmlData struct {
+	RenderNewRepos string
+	RenderRepos    string
+}
+
 func StartHttp() {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/", indexHandler)
+
 	port := ":" + strconv.Itoa(config.GlobalConfig.Port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		panic(err)
 	}
 }
 
-func loadTemplate(name string) string {
+func loadTemplate(name string) *template.Template {
 	path := filepath.Join("http", name)
-	data, err := os.ReadFile(path)
+	t, err := template.ParseFiles(path)
 	if err != nil {
 		fmt.Print(err)
 		log.Panicf("😭 cannot load: %s", name)
 	}
-	return string(data)
+	return t
 }
 
-func handler(writer http.ResponseWriter, r *http.Request) {
+func indexHandler(writer http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		if err := r.ParseForm(); err != nil {
 			log.Print(err)
@@ -53,8 +59,8 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 		case "ScanStart":
 			actions.ScanStart()
 
-		case "ScanStop":
-			actions.ScanStop()
+		case "Refresh":
+			actions.Refresh()
 
 		case "SyncAll":
 			actions.SyncAll()
@@ -75,10 +81,12 @@ func handler(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := loadTemplate("index.html")
-	html = strings.Replace(html, "{renderNewRepos}", renderNewRepos(), -1)
-	html = strings.Replace(html, "{renderRepos}", renderRepos(), -1)
-	fmt.Fprintf(writer, html)
+	htmlTemplate := loadTemplate("index.html")
+	data := IndexHtmlData{
+		RenderNewRepos: renderNewRepos(),
+		RenderRepos:    renderRepos(),
+	}
+	htmlTemplate.Execute(writer, data)
 }
 
 func renderNewRepos() string {
@@ -103,6 +111,12 @@ func renderRepos() string {
 	for _, repo := range config.GlobalConfig.Repos {
 		html += "<tr>"
 
+		// status
+		status := "✅"
+		if repo.Status != 0 {
+			status = "⚠️"
+		}
+		html += "<td>" + status + "</td>\n"
 		// open terminal window
 		html += "<td>" + termForm(repo) + "</td>\n"
 

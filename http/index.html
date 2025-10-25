@@ -9,14 +9,6 @@
     <meta name="description" content="scruffy's git scanner">
     <meta name="author" content="Pavel Prchal">
     <meta cache-control="no-cache">
-
-    <!-- Mobile Specific Metas –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- CSS –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="css/skeleton.css">
-
     <!-- Favicon –––––––––––––––––––––––––––––––––––––––––––––––––– -->
     <!-- <link rel="icon" type="image/png" href="images/favicon.png">    ⇓ ⇑  ⇕  -->
 </head>
@@ -30,7 +22,7 @@
                 <div>
                     <form method="post">
                         <button type="submit" name="action" value="ScanStart" id="ScanStart">▶ scan for git repos</button>
-                        <button type="submit" name="action" value="ScanStop" id="ScanStop">■ stop scanning</button>
+                        <button type="submit" name="action" value="Refresh" id="Refresh">■ refresh</button>
                         <button type="submit" name="action" value="Quit" id="ScanStop">■ quit</button>
                         <button type="submit" name="action" value="SyncAll" class="button button-primary">▲ synchronize all</button>
                     </form>
@@ -40,15 +32,16 @@
 
 
 
-        <h2>🏠 magaged repositories</h2>
+        <h2>🏠 managed repositories</h2>
         <table class="u-full-width">
             <thead>
                 <tr>
+                    <th>status</th>
                     <th>repo</th>
                     <th>actions</th>
                 </tr>
             </thead>
-            {renderRepos}
+            {{.RenderRepos}}
         </table>
 
         <h2>🔎 scanned repositories</h2>
@@ -59,7 +52,7 @@
                     <th>actions</th>
                 </tr>
             </thead>
-            {renderNewRepos}
+            {{.RenderNewRepos}}
         </table>
     </div>
 
